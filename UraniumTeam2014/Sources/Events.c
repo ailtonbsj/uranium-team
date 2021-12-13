@@ -43,6 +43,7 @@ extern int menorAmostra;
 extern int dadosCamera[128];
 extern uint8 cameraFinished;
 int contaTempo = 0;
+
 extern bool paradaAtiva;
 
 /*
@@ -146,7 +147,7 @@ void CameraAnalog_OnCalibrationEnd(void) {
 void Relogio1_OnInterrupt(void)
 {
   /* Write your code here ... */
-	if(contaTempo > 39){
+	if(contaTempo > 40){
 		paradaAtiva = TRUE;
 	}
 	contaTempo++;

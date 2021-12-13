@@ -81,13 +81,14 @@ int maiorAmostra;
 int menorAmostra;
 int dadosCamera[128];
 int linha[100];
+int linhaParada[43];
 uint8 limiar = 100;
+uint8 limiarParada = 100;
 uint8 cameraFinished;
 uint8 contTrack = 0;
 uint8 widthTrack = 100;
 uint8 widthTrackMin = 95;
 uint8 widthTrackMax = 100;
-bool paradaAtiva = FALSE;
 
 int8 l;
 int8 bordaL;
@@ -121,6 +122,8 @@ int contCurva = 0;
 bool estaEmReta  = TRUE;
 int contReta = 0;
 int timeMachine = 0;
+
+bool paradaAtiva = FALSE;
 
 int8 pretos[6];
 
@@ -197,7 +200,8 @@ int main(void)
 	/* Write your code here */
 	/* For example: for(;;) { } */
 	
-	Relogio1_Enable();
+	if(captaValueSwitch() & 0b0001) Relogio1_Enable();
+	else Relogio1_Disable();
 
 	TracaoEnable_PutVal(1);
 	TracaoA2_SetDutyUS(999);
@@ -208,29 +212,31 @@ int main(void)
 	CameraAnalog_Start();
 	maxTracao = 400;//-(captaValueSwitch()*10);
 	#define MIN_TRACAO 700 //999
-	#define RETA_PWM 500 //400 
+	#define RETA_PWM 400
 	rangeTracao = MIN_TRACAO-maxTracao;
 	
 	linha[0] = 0;
 	linha[99] = 0;
+	int contParadas1 = 0;
+	int contParadas2 = 0;
 	while (TRUE) {
 		if (cameraFinished) {
 			cameraFinished = 0;
-			
-			limiar = ((float) (maiorAmostra - menorAmostra)/2)+menorAmostra;
-			totalParada = 0;
+			limiar = (((float) (maiorAmostra - menorAmostra)/2)+menorAmostra);			
 			for (l = 15; l <= 112; l++) {
 				linha[l-14] = dadosCamera[l] > limiar;
-				if((contTrack >= 15) && ((l-14) > 34) && ((l-14) < 68)){
-					totalParada = totalParada + !linha[l-14];
-				}
 			}
 			
-//			totalParada = 0;
-//			for (l = 32; l <= 70; l++) {
-//				if(linha[l] == 0) totalParada++;
-//			}
-			
+			//PARADA NEW
+			limiarParada = limiar + 25;
+			linhaParada[0] = dadosCamera[44] > limiarParada;
+			contParadas1 = 0;
+			contParadas2 = 0;
+			for(l=45 ; l < 87 ; l++){
+				linhaParada[l-45] = dadosCamera[l] > limiarParada;
+				if(linhaParada[l-46] && !linhaParada[l-45]) contParadas1++;
+				if(!linhaParada[l-46] && linhaParada[l-45]) contParadas2++;
+			}
 
 			for (l = 49; l >= 0; l--) {
 				if (!linha[l]) {
@@ -249,10 +255,14 @@ int main(void)
 				contTrack++;
 				if(contTrack == 15){
 					widthTrack = (bordaR - bordaL);
+					widthTrackMax = widthTrack + 3;
+					widthTrackMin = widthTrack - 3;
 				}
 			}
 			
 			diffBorda = bordaR - bordaL;
+
+//					TracaoEnable_PutVal(0);
 			
 			if(bordaL == 0){
 				ladoL = bordaR - widthTrack;
@@ -272,7 +282,7 @@ int main(void)
 			errAbs = abs(err);
 			
 			if(previousErrAbs > 19){
-				if(diffBorda > 48 && diffBorda < 75 && ((previousErr > 0 && err > 0) || (previousErr < 0 && err < 0))){ //bordaL != 0 && bordaR != 99 &&
+				if(diffBorda > 48 && diffBorda < 75 && ((previousErr > 0 && err > 0) || (previousErr < 0 && err < 0))){
 				}
 				else {
 					err = previousErr;
@@ -306,33 +316,42 @@ int main(void)
 				if(contCurva > 50){
 					saiuDeCurva = TRUE;
 				}
-
+				acenderLeds(0);
 			}
 			else {
-				contCurva = 0;
-				contReta++;
-				if(contReta > 10){
-					estaEmReta = TRUE;
-				}
-				if(saiuDeCurva && estaEmReta){
-					setTracao(1,1);		
-					timeMachine++;
-					if(timeMachine > 75){
-						saiuDeCurva = FALSE;
-						estaEmReta = FALSE;
-						timeMachine = 0;
+				if(!paradaAtiva){
+					contCurva = 0;
+					contReta++;
+					if(contReta > 10){
+						estaEmReta = TRUE;
 					}
+					if(saiuDeCurva && estaEmReta){
+						//acenderLeds(0b1111);
+						setTracao(1,1);		
+						timeMachine++;
+						if(timeMachine > 60){
+							saiuDeCurva = FALSE;
+							estaEmReta = FALSE;
+							timeMachine = 0;
+						}
+					}
+					else {
+						setTracao(RETA_PWM,RETA_PWM);
+						//acenderLeds(0);
+					}	
 				}
 				else {
-					setTracao(RETA_PWM,RETA_PWM);
+					setTracao(500,500);
 				}
 			}
 			
-			if(paradaAtiva) acenderLeds(0b1111);
-			
-			if(totalParada > 4 && previousErrAbs < 10 && paradaAtiva){
-				TracaoEnable_PutVal(0);
+			if((diffBorda > widthTrackMin) && (diffBorda < widthTrackMax) && paradaAtiva){
+				if(contParadas1 == 2 && contParadas2 == 2) TracaoEnable_PutVal(0);
 			}
+			
+//			if(totalParada > 0 && previousErrAbs < 10){
+//				TracaoEnable_PutVal(0);
+//			}
 			
 			previousErr = err;
 			previousErrAbs = errAbs;
