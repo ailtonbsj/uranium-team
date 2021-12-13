@@ -192,5 +192,5 @@ for ani = 1:34
     axis([0 100 0 1.5])
     title('Sinal com Thresholding');
     hold off
-    pause(3)
+    pause(1)
 end
