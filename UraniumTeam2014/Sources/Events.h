@@ -5,7 +5,7 @@
 **     Component   : Events
 **     Version     : Driver 01.00
 **     Compiler    : GNU C Compiler
-**     Date/Time   : 2014-09-10, 14:22, # CodeGen: 0
+**     Date/Time   : 2014-09-12, 13:13, # CodeGen: 0
 **     Abstract    :
 **         This is user's event module.
 **         Put your event handler code here.
@@ -48,9 +48,6 @@
 #include "BitIoLdd5.h"
 #include "LED4.h"
 #include "BitIoLdd6.h"
-#include "Servo.h"
-#include "PwmLdd1.h"
-#include "TU1.h"
 #include "SW1.h"
 #include "BitIoLdd7.h"
 #include "SW2.h"
@@ -59,19 +56,20 @@
 #include "BitIoLdd9.h"
 #include "SW4.h"
 #include "BitIoLdd10.h"
-#include "TracaoEnable.h"
-#include "BitIoLdd11.h"
-#include "TracaoB2.h"
-#include "BitIoLdd12.h"
-#include "TracaoA2.h"
-#include "BitIoLdd13.h"
+#include "Servo.h"
+#include "PwmLdd1.h"
+#include "TU1.h"
 #include "TracaoA1.h"
 #include "PwmLdd2.h"
 #include "TU2.h"
-#include "TracaoB1.h"
 #include "PwmLdd3.h"
-#include "Serial.h"
-#include "ASerialLdd1.h"
+#include "TracaoB1.h"
+#include "PwmLdd4.h"
+#include "TracaoB2.h"
+#include "PwmLdd5.h"
+#include "TracaoEnable.h"
+#include "BitIoLdd11.h"
+#include "TracaoA2.h"
 
 #ifdef __cplusplus
 extern "C" {

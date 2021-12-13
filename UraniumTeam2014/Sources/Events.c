@@ -5,7 +5,7 @@
  **     Component   : Events
  **     Version     : Driver 01.00
  **     Compiler    : GNU C Compiler
- **     Date/Time   : 2014-09-10, 14:22, # CodeGen: 0
+ **     Date/Time   : 2014-09-12, 13:13, # CodeGen: 0
  **     Abstract    :
  **         This is user's event module.
  **         Put your event handler code here.
@@ -35,12 +35,12 @@ extern "C" {
 #endif 
 
 /* User includes (#include below this line is not maintained by Processor Expert) */
-uint8 cameraCont;
+uint16 cameraCont;
 uint8 cameraClock;
 uint8 amostra;
 extern int maiorAmostra;
 extern int menorAmostra;
-extern int dadosCamera[88];
+extern int dadosCamera[128];
 extern uint8 cameraFinished;
 
 /*
@@ -76,15 +76,19 @@ void Cpu_OnNMIINT(void) {
  */
 void CameraAnalog_OnEnd(void) {
 	/* Write your code here ... */
-	if (cameraCont <= 128) {
+	if (cameraCont <= 130) {
 		if (cameraClock == 1) {
 			if (cameraCont <= 1) {
 				CameraSI_PutVal(0);
-				
+
 			}
 			cameraCont++;
 		}
 		cameraClock = !cameraClock;
+	} else if(cameraCont <= 132){
+		CameraSI_PutVal(0);
+		cameraClock = 0;
+		cameraCont++;
 	} else {
 		cameraClock = 0;
 		cameraCont = 0;
@@ -93,17 +97,14 @@ void CameraAnalog_OnEnd(void) {
 		CameraAnalog_Disable();
 		cameraFinished = 1;
 	}
-	if (cameraCont == 0 && cameraClock == 0) {
-		CameraSI_PutVal(1);
-	}
 	CameraClock_PutVal(cameraClock);
-	
+
 	CameraAnalog_GetValue8(&amostra);
-	if (cameraCont >= 20 && cameraCont <= 107) {
-		dadosCamera[cameraCont-20] = amostra;
-		if (amostra > maiorAmostra)
+	if (cameraCont >= 0 && cameraCont <= 127) {
+		dadosCamera[cameraCont] = amostra;
+		if (amostra > maiorAmostra && amostra != 0)
 			maiorAmostra = amostra;
-		if (amostra < menorAmostra)
+		if (amostra < menorAmostra && amostra != 0)
 			menorAmostra = amostra;
 	}
 }
