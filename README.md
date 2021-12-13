@@ -9,7 +9,7 @@ Source code Uranium Team from Freescale Cup Brazil 2014
 - FRDM-TFC Board
 - Linescan Sensor
 
-# Some plot with MATLAB
+# Some plots with MATLAB
 
 ![](Analise_MATLAB/matlab1.gif)
 
