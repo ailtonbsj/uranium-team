@@ -106,20 +106,13 @@ int servo;
 int tracao1;
 int tracao2;
 
-#define CENTRO_SERVO 18518
-#define LIDERDADE_SERVO 320
+#define CENTRO_SERVO 18500
+#define LIDERDADE_SERVO 300
 #define ESQUERDA_SERVO (CENTRO_SERVO-LIDERDADE_SERVO)
 #define DIREITO_SERVO (CENTRO_SERVO+LIDERDADE_SERVO)
 
 int maxTracao = 400;
 int rangeTracao;
-
-//Boost
-bool saiuDeCurva = TRUE;
-int contCurva = 0;
-bool estaEmReta  = TRUE;
-int contReta = 0;
-int timeMachine = 0;
 
 int8 pretos[6];
 
@@ -312,35 +305,11 @@ int main(void)
 					tracao1 = maxTracao;
 					tracao2 = maxTracao + rangeTracao * ((float)errAbs/21);
 				}
-				setTracao(tracao1,tracao2);
 				
-				contReta = 0;
-				contCurva++;
-				if(contCurva > 50){
-					saiuDeCurva = TRUE;
-				}
-
+				setTracao(tracao1,tracao2);
 			}
 			else {
-				contCurva = 0;
-				contReta++;
-				if(contReta > 10){
-					estaEmReta = TRUE;
-				}
-				if(saiuDeCurva && estaEmReta){
-					acenderLeds(0b1111);
-					setTracao(1,1);		
-					timeMachine++;
-					if(timeMachine > 20){
-						saiuDeCurva = FALSE;
-						estaEmReta = FALSE;
-						timeMachine = 0;
-					}
-				}
-				else {
-					setTracao(RETA_PWM,RETA_PWM);
-					acenderLeds(0);
-				}
+				setTracao(RETA_PWM,RETA_PWM);//270
 			}
 			
 //			if(totalParada > 0 && previousErrAbs < 10){
