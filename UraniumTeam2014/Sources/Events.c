@@ -42,6 +42,7 @@ extern int maiorAmostra;
 extern int menorAmostra;
 extern int dadosCamera[128];
 extern uint8 cameraFinished;
+int contaTempo = 0;
 
 /*
  ** ===================================================================
@@ -125,6 +126,29 @@ void CameraAnalog_OnEnd(void) {
  */
 void CameraAnalog_OnCalibrationEnd(void) {
 	/* Write your code here ... */
+}
+
+/*
+** ===================================================================
+**     Event       :  Relogio1_OnInterrupt (module Events)
+**
+**     Component   :  Relogio1 [TimerInt]
+**     Description :
+**         When a timer interrupt occurs this event is called (only
+**         when the component is enabled - <Enable> and the events are
+**         enabled - <EnableEvent>). This event is enabled only if a
+**         <interrupt service/event> is enabled.
+**     Parameters  : None
+**     Returns     : Nothing
+** ===================================================================
+*/
+void Relogio1_OnInterrupt(void)
+{
+  /* Write your code here ... */
+	if(contaTempo > 44){
+		//TracaoEnable_PutVal(0);
+	}
+	contaTempo++;
 }
 
 /* END Events */

@@ -67,6 +67,9 @@
 #include "PwmLdd4.h"
 #include "TracaoB2.h"
 #include "PwmLdd5.h"
+#include "Relogio1.h"
+#include "TimerIntLdd1.h"
+#include "TU3.h"
 #include "TracaoEnable.h"
 #include "BitIoLdd11.h"
 #include "TracaoA2.h"
@@ -122,6 +125,22 @@ void CameraAnalog_OnCalibrationEnd(void);
 **     Returns     : Nothing
 ** ===================================================================
 */
+
+/*
+** ===================================================================
+**     Event       :  Relogio1_OnInterrupt (module Events)
+**
+**     Component   :  Relogio1 [TimerInt]
+**     Description :
+**         When a timer interrupt occurs this event is called (only
+**         when the component is enabled - <Enable> and the events are
+**         enabled - <EnableEvent>). This event is enabled only if a
+**         <interrupt service/event> is enabled.
+**     Parameters  : None
+**     Returns     : Nothing
+** ===================================================================
+*/
+void Relogio1_OnInterrupt(void);
 
 /* END Events */
 
