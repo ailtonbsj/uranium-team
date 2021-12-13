@@ -43,6 +43,7 @@ extern int menorAmostra;
 extern int dadosCamera[128];
 extern uint8 cameraFinished;
 int contaTempo = 0;
+extern bool paradaAtiva;
 
 /*
  ** ===================================================================
@@ -145,8 +146,8 @@ void CameraAnalog_OnCalibrationEnd(void) {
 void Relogio1_OnInterrupt(void)
 {
   /* Write your code here ... */
-	if(contaTempo > 44){
-		//TracaoEnable_PutVal(0);
+	if(contaTempo > 39){
+		paradaAtiva = TRUE;
 	}
 	contaTempo++;
 }

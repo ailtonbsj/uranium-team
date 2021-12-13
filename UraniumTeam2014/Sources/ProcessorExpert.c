@@ -87,6 +87,7 @@ uint8 contTrack = 0;
 uint8 widthTrack = 100;
 uint8 widthTrackMin = 95;
 uint8 widthTrackMax = 100;
+bool paradaAtiva = FALSE;
 
 int8 l;
 int8 bordaL;
@@ -106,13 +107,20 @@ int servo;
 int tracao1;
 int tracao2;
 
-#define CENTRO_SERVO 18500
-#define LIDERDADE_SERVO 300
+#define CENTRO_SERVO 18518
+#define LIDERDADE_SERVO 320
 #define ESQUERDA_SERVO (CENTRO_SERVO-LIDERDADE_SERVO)
 #define DIREITO_SERVO (CENTRO_SERVO+LIDERDADE_SERVO)
 
 int maxTracao = 400;
 int rangeTracao;
+
+//Boost
+bool saiuDeCurva = TRUE;
+int contCurva = 0;
+bool estaEmReta  = TRUE;
+int contReta = 0;
+int timeMachine = 0;
 
 int8 pretos[6];
 
@@ -200,15 +208,12 @@ int main(void)
 	CameraAnalog_Start();
 	maxTracao = 400;//-(captaValueSwitch()*10);
 	#define MIN_TRACAO 700 //999
-	#define RETA_PWM 400
+	#define RETA_PWM 500 //400 
 	rangeTracao = MIN_TRACAO-maxTracao;
 	
 	linha[0] = 0;
 	linha[99] = 0;
 	while (TRUE) {
-//		if(!SensorParada_GetVal()){
-//			acenderLeds(0b1111);
-//		}
 		if (cameraFinished) {
 			cameraFinished = 0;
 			
@@ -248,17 +253,6 @@ int main(void)
 			}
 			
 			diffBorda = bordaR - bordaL;
-			
-//			if(diffBorda < 30){
-//				acenderLeds(0b1111);
-//			}
-//			else {
-//				acenderLeds(0);
-//			}
-			
-//			if(diffBorda < 16) {
-//				TracaoEnable_PutVal(0);
-//			}
 			
 			if(bordaL == 0){
 				ladoL = bordaR - widthTrack;
@@ -305,16 +299,40 @@ int main(void)
 					tracao1 = maxTracao;
 					tracao2 = maxTracao + rangeTracao * ((float)errAbs/21);
 				}
-				
 				setTracao(tracao1,tracao2);
+				
+				contReta = 0;
+				contCurva++;
+				if(contCurva > 50){
+					saiuDeCurva = TRUE;
+				}
+
 			}
 			else {
-				setTracao(RETA_PWM,RETA_PWM);//270
+				contCurva = 0;
+				contReta++;
+				if(contReta > 10){
+					estaEmReta = TRUE;
+				}
+				if(saiuDeCurva && estaEmReta){
+					setTracao(1,1);		
+					timeMachine++;
+					if(timeMachine > 75){
+						saiuDeCurva = FALSE;
+						estaEmReta = FALSE;
+						timeMachine = 0;
+					}
+				}
+				else {
+					setTracao(RETA_PWM,RETA_PWM);
+				}
 			}
 			
-//			if(totalParada > 0 && previousErrAbs < 10){
-//				TracaoEnable_PutVal(0);
-//			}
+			if(paradaAtiva) acenderLeds(0b1111);
+			
+			if(totalParada > 4 && previousErrAbs < 10 && paradaAtiva){
+				TracaoEnable_PutVal(0);
+			}
 			
 			previousErr = err;
 			previousErrAbs = errAbs;
