@@ -82,22 +82,22 @@
 #define LIDERDADE_SERVO 320
 #define ESQUERDA_SERVO (CENTRO_SERVO-LIDERDADE_SERVO)
 #define DIREITO_SERVO (CENTRO_SERVO+LIDERDADE_SERVO)
-#define ERR_MAX_CENTER 16 // valor do erro para o centro da pista
+#define ERR_MAX_CENTER 6 // valor do erro para o centro da pista
 
 /* Boost */
-#define FIRST_PULSE 200 //pulso inicial
-#define NORMAL_PULSE 70 //pulso normal
+#define FIRST_PULSE 40 //pulso inicial 200
+#define NORMAL_PULSE 2 //pulso normal 70
 #define PWM_PULSE 1 // tamanho do pulso em PWM (controla velocidade no pulso)
 #define SAMPLES_IN_CURVE 50 //total de detecção de amostras de curvas 50
-#define SAMPLES_IN_STRAIGHT 10 //total de deteccão de amostras de retas 10
+#define SAMPLES_IN_STRAIGHT 50 //total de deteccão de amostras de retas 10
 
 /* PWM Speed */
-#define RETA_PWM 200 //velocidade em reta sem pulso
-#define MIN_TRACAO 750 //tracao em curva da roda de dentro
-#define MAX_TRACAO 300 //tracao em reta da roda de fora
+#define RETA_PWM 200 //velocidade em reta sem pulso 100
+#define MIN_TRACAO 700 //tracao em curva da roda de dentro 600
+#define MAX_TRACAO 300 //tracao em reta da roda de fora 200
 
 /* Parada do Carro */
-#define TIME_BREAK 100000 //1000000
+#define TIME_BREAK 1000000 //1000000
 
 
 int maiorAmostra;
@@ -344,7 +344,7 @@ int main(void)
 					estaEmReta = TRUE;
 				}
 				/* gerador de pulsos */
-				if(saiuDeCurva && estaEmReta && !paradaAtiva && FALSE){
+				if(saiuDeCurva && estaEmReta && !paradaAtiva){
 					setTracao(PWM_PULSE,PWM_PULSE);		
 					timeMachine++;
 					if(timeMachine > widthPulse){
