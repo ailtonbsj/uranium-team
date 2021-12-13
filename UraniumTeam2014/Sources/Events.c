@@ -38,8 +38,9 @@ extern "C" {
 uint16 cameraCont;
 uint8 cameraClock;
 uint8 amostra;
-uint8 amostra1;
-extern int dadosCamera[2][128];
+extern int maiorAmostra;
+extern int menorAmostra;
+extern int dadosCamera[128];
 extern uint8 cameraFinished;
 int contaTempo = 0;
 
@@ -99,11 +100,13 @@ void CameraAnalog_OnEnd(void) {
 	}
 	CameraClock_PutVal(cameraClock);
 
-	CameraAnalog_GetChanValue8(0,&amostra);
-	CameraAnalog_GetChanValue8(1,&amostra1);
+	CameraAnalog_GetValue8(&amostra);
 	if (cameraCont >= 0 && cameraCont <= 127) {
-		dadosCamera[0][cameraCont] = amostra;
-		dadosCamera[1][cameraCont] = amostra1;
+		dadosCamera[cameraCont] = amostra;
+		if (amostra > maiorAmostra && amostra != 0)
+			maiorAmostra = amostra;
+		if (amostra < menorAmostra && amostra != 0)
+			menorAmostra = amostra;
 	}
 }
 

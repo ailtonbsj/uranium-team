@@ -77,11 +77,11 @@
 /* User includes (#include below this line is not maintained by Processor Expert) */
 #include <stdlib.h>
 
-int maiorAmostra[2];
-int menorAmostra[2];
-int dadosCamera[2][128];
-int linha[2][100];
-uint8 limiar[2];
+int maiorAmostra;
+int menorAmostra;
+int dadosCamera[128];
+int linha[100];
+uint8 limiar = 100;
 uint8 cameraFinished;
 uint8 contTrack = 0;
 uint8 widthTrack = 100;
@@ -89,8 +89,8 @@ uint8 widthTrackMin = 95;
 uint8 widthTrackMax = 100;
 
 int8 l;
-int8 bordaL[2];
-int8 bordaR[2];
+int8 bordaL;
+int8 bordaR;
 int8 totalParada = 0;
 int8 ladoL;
 int8 ladoR;
@@ -101,18 +101,25 @@ int err = 0;
 int errAbs = 0;
 int previousErr = 0;
 int previousErrAbs = 0;
-int8 diffBorda[2];
+int8 diffBorda;
 int servo;
 int tracao1;
 int tracao2;
 
-#define CENTRO_SERVO 18500
-#define LIDERDADE_SERVO 300
+#define CENTRO_SERVO 18518
+#define LIDERDADE_SERVO 320
 #define ESQUERDA_SERVO (CENTRO_SERVO-LIDERDADE_SERVO)
 #define DIREITO_SERVO (CENTRO_SERVO+LIDERDADE_SERVO)
 
 int maxTracao = 400;
 int rangeTracao;
+
+//Boost
+bool saiuDeCurva = TRUE;
+int contCurva = 0;
+bool estaEmReta  = TRUE;
+int contReta = 0;
+int timeMachine = 0;
 
 int8 pretos[6];
 
@@ -198,41 +205,26 @@ int main(void)
 	cameraFinished = 0;
 	CameraAnalog_Enable();
 	CameraAnalog_Start();
-	maxTracao = 350;//-(captaValueSwitch()*10);
-	#define MIN_TRACAO 750 //999
-	int reta_pwm = 400;
+	maxTracao = 400;//-(captaValueSwitch()*10);
+	#define MIN_TRACAO 700 //999
+	#define RETA_PWM 400
 	rangeTracao = MIN_TRACAO-maxTracao;
 	
-	linha[0][0] = 0;
-	linha[0][99] = 0;
+	linha[0] = 0;
+	linha[99] = 0;
 	while (TRUE) {
 //		if(!SensorParada_GetVal()){
 //			acenderLeds(0b1111);
 //		}
 		if (cameraFinished) {
-			int cont;
 			cameraFinished = 0;
-			menorAmostra[0] = 255;
-			maiorAmostra[0] = 0;
-			menorAmostra[1] = 255;
-			maiorAmostra[1] = 0;
 			
-			for(cont=0; cont < 128; cont++){
-				if (dadosCamera[0][cont] > maiorAmostra[0]) maiorAmostra[0] = dadosCamera[0][cont];
-				if (dadosCamera[0][cont] < menorAmostra[0])	menorAmostra[0] = dadosCamera[0][cont];
-				
-				if (dadosCamera[1][cont] > maiorAmostra[1]) maiorAmostra[1] = dadosCamera[1][cont];
-				if (dadosCamera[1][cont] < menorAmostra[1])	menorAmostra[1] = dadosCamera[1][cont];
-			}
-			
-			limiar[0] = ((float) (maiorAmostra[0] - menorAmostra[0])/2)+menorAmostra[0];
-			limiar[1] = ((float) (maiorAmostra[1] - menorAmostra[1])/2)+menorAmostra[1];
+			limiar = ((float) (maiorAmostra - menorAmostra)/2)+menorAmostra;
 			totalParada = 0;
 			for (l = 15; l <= 112; l++) {
-				linha[0][l-14] = dadosCamera[0][l] > limiar[0];
-				linha[1][l-14] = dadosCamera[1][l] > limiar[1];
+				linha[l-14] = dadosCamera[l] > limiar;
 				if((contTrack >= 15) && ((l-14) > 34) && ((l-14) < 68)){
-					totalParada = totalParada + !linha[0][l-14];
+					totalParada = totalParada + !linha[l-14];
 				}
 			}
 			
@@ -243,27 +235,14 @@ int main(void)
 			
 
 			for (l = 49; l >= 0; l--) {
-				if (!linha[0][l]) {
-					bordaL[0] = l;
+				if (!linha[l]) {
+					bordaL = l;
 					break;
 				}
 			}
 			for (l = 50; l < 100; l++) {
-				if (!linha[0][l]) {
-					bordaR[0] = l;
-					break;
-				}
-			}
-			
-			for (l = 49; l >= 0; l--) {
-				if (!linha[1][l]) {
-					bordaL[1] = l;
-					break;
-				}
-			}
-			for (l = 50; l < 100; l++) {
-				if (!linha[1][l]) {
-					bordaR[1] = l;
+				if (!linha[l]) {
+					bordaR = l;
 					break;
 				}
 			}
@@ -271,12 +250,11 @@ int main(void)
 			if(contTrack < 15){
 				contTrack++;
 				if(contTrack == 15){
-					widthTrack = (bordaR[0] - bordaL[0]);
+					widthTrack = (bordaR - bordaL);
 				}
 			}
 			
-			diffBorda[0] = bordaR[0] - bordaL[0];
-			diffBorda[1] = bordaR[1] - bordaL[1];
+			diffBorda = bordaR - bordaL;
 			
 //			if(diffBorda < 30){
 //				acenderLeds(0b1111);
@@ -289,17 +267,17 @@ int main(void)
 //				TracaoEnable_PutVal(0);
 //			}
 			
-			if(bordaL[0] == 0){
-				ladoL = bordaR[0] - widthTrack;
-				ladoR = bordaR[0];
+			if(bordaL == 0){
+				ladoL = bordaR - widthTrack;
+				ladoR = bordaR;
 			}
-			else if(bordaR[0] == 99){
-				ladoL = bordaL[0];
-				ladoR = bordaL[0] + widthTrack;
+			else if(bordaR == 99){
+				ladoL = bordaL;
+				ladoR = bordaL + widthTrack;
 			}
 			else {
-				ladoR = bordaR[0];
-				ladoL = bordaL[0];
+				ladoR = bordaR;
+				ladoL = bordaL;
 			}
 			
 			output = (ladoR + ladoL) / 2;
@@ -307,7 +285,7 @@ int main(void)
 			errAbs = abs(err);
 			
 			if(previousErrAbs > 19){
-				if(diffBorda[0] > 48 && diffBorda[0] < 75 && ((previousErr > 0 && err > 0) || (previousErr < 0 && err < 0))){ //bordaL[0] != 0 && bordaR[0] != 99 &&
+				if(diffBorda > 48 && diffBorda < 75 && ((previousErr > 0 && err > 0) || (previousErr < 0 && err < 0))){ //bordaL != 0 && bordaR != 99 &&
 				}
 				else {
 					err = previousErr;
@@ -315,7 +293,7 @@ int main(void)
 				}
 			}
 			
-			if(diffBorda[0] > 75 && previousErrAbs < 19){
+			if(diffBorda > 75 && previousErrAbs < 19){
 				err = previousErr;
 				errAbs = previousErrAbs;
 				setServo(CENTRO_SERVO);
@@ -334,22 +312,35 @@ int main(void)
 					tracao1 = maxTracao;
 					tracao2 = maxTracao + rangeTracao * ((float)errAbs/21);
 				}
-				
 				setTracao(tracao1,tracao2);
+				
+				contReta = 0;
+				contCurva++;
+				if(contCurva > 50){
+					saiuDeCurva = TRUE;
+				}
+
 			}
 			else {
-				#define TAMANHO 45
-				#define TAMANHO_MIN TAMANHO-9
-				#define TAMANHO_MAX TAMANHO+9
-				if(diffBorda[1] > TAMANHO_MIN && diffBorda[1] < TAMANHO_MAX){
+				contCurva = 0;
+				contReta++;
+				if(contReta > 10){
+					estaEmReta = TRUE;
+				}
+				if(saiuDeCurva && estaEmReta){
 					acenderLeds(0b1111);
-					reta_pwm = 300;
+					setTracao(1,1);		
+					timeMachine++;
+					if(timeMachine > 60){
+						saiuDeCurva = FALSE;
+						estaEmReta = FALSE;
+						timeMachine = 0;
+					}
 				}
 				else {
+					setTracao(RETA_PWM,RETA_PWM);
 					acenderLeds(0);
-					reta_pwm = 650;
 				}
-				setTracao(reta_pwm,reta_pwm);
 			}
 			
 //			if(totalParada > 0 && previousErrAbs < 10){
@@ -360,6 +351,8 @@ int main(void)
 			previousErrAbs = errAbs;
 
 			CameraSI_PutVal(1);
+			menorAmostra = 255;
+			maiorAmostra = 0;
 			CameraAnalog_Enable();
 			CameraAnalog_Start();
 		}
