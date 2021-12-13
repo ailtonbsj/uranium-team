@@ -146,7 +146,7 @@ void CameraAnalog_OnCalibrationEnd(void) {
 void Relogio1_OnInterrupt(void)
 {
   /* Write your code here ... */
-	if(contaTempo > 16){ //39
+	if(contaTempo > 38){ //39
 		paradaAtiva = TRUE;
 	}
 	contaTempo++;

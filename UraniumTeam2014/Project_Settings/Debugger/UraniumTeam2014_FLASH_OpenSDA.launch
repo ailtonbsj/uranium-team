@@ -115,10 +115,10 @@
 <stringAttribute key="org.eclipse.cdt.launch.GLOBAL_VARIABLES" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;globalVariableList&gt;&#13;&#10;&lt;globalVariable name=&quot;switchDIP&quot; path=&quot;&quot;/&gt;&#13;&#10;&lt;globalVariable name=&quot;limiar&quot; path=&quot;&quot;/&gt;&#13;&#10;&lt;globalVariable name=&quot;dadosCamera&quot; path=&quot;&quot;/&gt;&#13;&#10;&lt;globalVariable name=&quot;linha&quot; path=&quot;&quot;/&gt;&#13;&#10;&lt;/globalVariableList&gt;&#13;&#10;"/>
 <stringAttribute key="org.eclipse.cdt.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;memoryBlockExpressionList/&gt;&#13;&#10;"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="FLASH/UraniumTeam2014.elf"/>
-<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="UraniumTeam2014FinalAGORA"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="UraniumTeam2014Final"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value="org.eclipse.cdt.cross.arm.gnu.sourcery.windows.elf.debug.147441015"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/UraniumTeam2014FinalAGORA"/>
+<listEntry value="/UraniumTeam2014Final"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="4"/>
