@@ -82,7 +82,7 @@
 #define LIDERDADE_SERVO 320
 #define ESQUERDA_SERVO (CENTRO_SERVO-LIDERDADE_SERVO)
 #define DIREITO_SERVO (CENTRO_SERVO+LIDERDADE_SERVO)
-#define ERR_MAX_CENTER 6 // valor do erro para o centro da pista
+#define ERR_MAX_CENTER 16 // valor do erro para o centro da pista
 
 /* Boost */
 #define FIRST_PULSE 200 //pulso inicial
@@ -92,9 +92,9 @@
 #define SAMPLES_IN_STRAIGHT 10 //total de deteccão de amostras de retas 10
 
 /* PWM Speed */
-#define RETA_PWM 450 //velocidade em reta sem pulso
-#define MIN_TRACAO 700 //tracao em curva da roda de dentro
-#define MAX_TRACAO 400 //tracao em reta da roda de fora
+#define RETA_PWM 200 //velocidade em reta sem pulso
+#define MIN_TRACAO 750 //tracao em curva da roda de dentro
+#define MAX_TRACAO 300 //tracao em reta da roda de fora
 
 /* Parada do Carro */
 #define TIME_BREAK 100000 //1000000
@@ -344,7 +344,7 @@ int main(void)
 					estaEmReta = TRUE;
 				}
 				/* gerador de pulsos */
-				if(saiuDeCurva && estaEmReta && !paradaAtiva){
+				if(saiuDeCurva && estaEmReta && !paradaAtiva && FALSE){
 					setTracao(PWM_PULSE,PWM_PULSE);		
 					timeMachine++;
 					if(timeMachine > widthPulse){
