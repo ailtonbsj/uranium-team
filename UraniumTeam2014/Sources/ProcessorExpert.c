@@ -75,12 +75,39 @@
 int maiorAmostra;
 int menorAmostra;
 int dadosCamera[88];
+int linha[88];
 uint8 cameraFinished;
+int8 sentido = 1;
+
+uint8 contTrack = 0;
+uint8 widthTrack = 60;
+uint8 widthTrackMin = 57;
+uint8 widthTrackMax = 63;
+
+int8 l;
+int8 bordaL;
+int8 bordaR;
+bool twoBorderDetect = FALSE;
+
+int output = 44;
+int input;
+int err = 0;
+int errAbs = 0;
+int previousErr = 0;
+int previousErrAbs = 0;
+int8 diffBorda;
+int servo;
+int tracao1;
+int tracao2;
 
 #define CENTRO_SERVO 18500
 #define LIDERDADE_SERVO 300
 #define ESQUERDA_SERVO (CENTRO_SERVO-LIDERDADE_SERVO)
 #define DIREITO_SERVO (CENTRO_SERVO+LIDERDADE_SERVO)
+
+#define MAX_TRACAO 300
+#define MIN_TRACAO 800
+#define RANGE_TRACAO MAX_TRACAO-MIN_TRACAO
 
 int acenderLeds(uint8 num) {
 	if (num & 1)
@@ -142,6 +169,15 @@ int captaValueSwitch() {
 	return saida;
 }
 
+void setTracaoFull(int a, int b){
+	if(sentido == -1){
+		setTracao(a,b);
+	}
+	else {
+		setTracao(b,a);
+	}
+}
+
 /*lint -save  -e970 Disable MISRA rule (6.3) checking. */
 int main(void)
 /*lint -restore Enable MISRA rule (6.3) checking. */
@@ -154,22 +190,104 @@ int main(void)
 
 	/* Write your code here */
 	/* For example: for(;;) { } */
+	
+	#define ESQUERDA 0
+	#define DIREITA 1
 
 	TracaoEnable_PutVal(1);
 	TracaoA2_PutVal(0);
 	TracaoB2_PutVal(0);
-	
+
+	cameraFinished = 0;
 	CameraAnalog_Enable();
 	CameraAnalog_Start();
-	cameraFinished = 0;
+	
 
 	while (TRUE) {
 		if (cameraFinished) {
 			cameraFinished = 0;
-			
-			//Code Here!			
-			setServo(CENTRO_SERVO);
-			setTracao(600,600);
+
+			//Code Here!
+			if (maiorAmostra <= 50) {
+				//PRETO
+				//acenderLeds(0);
+			} else if (menorAmostra >= 50) {
+				//BRANCO
+				//acenderLeds(0b1111);
+			} else {
+				//LINES
+				for (l = 0; l < 88; l++) {
+					linha[l] = (((float) 255 / (maiorAmostra - menorAmostra))	* (dadosCamera[l] - menorAmostra)) > 115;
+				}
+
+				bordaL = 0;
+				bordaR = 88;
+				for (l = 43; l >= 0; l--) {
+					if (!linha[l]) {
+						bordaL = l;
+						break;
+					}
+				}
+				for (l = 44; l < 88; l++) {
+					if (!linha[l]) {
+						bordaR = l;
+						break;
+					}
+				}
+				
+				if(contTrack < 15){
+					contTrack++;
+					if(contTrack == 15){
+						widthTrack = bordaR - bordaL;
+						widthTrackMax += 4;
+						widthTrackMin -= 4;
+					}
+				}
+
+				diffBorda = bordaR - bordaL;
+				if (!((diffBorda >= widthTrackMin)
+						&& (diffBorda <= widthTrackMax))) {
+					if ((43 - bordaL) < (bordaR - 44))
+						bordaR = bordaL + widthTrack;
+					else
+						bordaL = bordaR - widthTrack;
+					twoBorderDetect = FALSE;
+				}
+				else twoBorderDetect = TRUE;
+
+				output = (bordaR + bordaL) / 2;
+				err = 43 - output;
+				
+				if(previousErrAbs > 22 && !twoBorderDetect){
+					err = previousErr;
+				}
+				errAbs = abs(err);
+				
+				servo = ESQUERDA_SERVO + (DIREITO_SERVO-ESQUERDA_SERVO)*((float)(23+err)/46);
+				setServo(servo);
+				
+				input = err;
+				
+#define MAX_TRACAO 400
+#define MIN_TRACAO 999
+#define RANGE_TRACAO MAX_TRACAO-MIN_TRACAO
+				
+				if(errAbs > 17){
+					tracao1 = MAX_TRACAO + (MIN_TRACAO - MAX_TRACAO) * ((float)-input/23);
+					tracao2 = MAX_TRACAO + (MIN_TRACAO - MAX_TRACAO) * ((float)+input/23);
+					if (tracao1 < MAX_TRACAO)	tracao1 = MAX_TRACAO;
+					if (tracao2 < MAX_TRACAO)	tracao2 = MAX_TRACAO;
+					if (tracao1 > MIN_TRACAO)	tracao1 = MIN_TRACAO;
+					if (tracao2 > MIN_TRACAO)	tracao2 = MIN_TRACAO;
+					setTracao(tracao1,tracao2);
+				}
+				else {
+					setTracao(MAX_TRACAO,MAX_TRACAO);
+				}
+				
+				previousErr = err;
+				previousErrAbs = errAbs;
+			}
 
 			menorAmostra = 255;
 			maiorAmostra = 0;
