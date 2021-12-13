@@ -62,14 +62,14 @@
 #include "TracaoA1.h"
 #include "PwmLdd2.h"
 #include "TU2.h"
-#include "TracaoB1.h"
 #include "PwmLdd3.h"
+#include "TracaoB1.h"
+#include "PwmLdd4.h"
+#include "TracaoB2.h"
+#include "PwmLdd5.h"
 #include "TracaoEnable.h"
 #include "BitIoLdd11.h"
 #include "TracaoA2.h"
-#include "BitIoLdd12.h"
-#include "TracaoB2.h"
-#include "BitIoLdd13.h"
 
 #ifdef __cplusplus
 extern "C" {

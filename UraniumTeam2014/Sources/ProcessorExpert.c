@@ -57,14 +57,14 @@
 #include "TracaoA1.h"
 #include "PwmLdd2.h"
 #include "TU2.h"
-#include "TracaoB1.h"
 #include "PwmLdd3.h"
+#include "TracaoB1.h"
+#include "PwmLdd4.h"
+#include "TracaoB2.h"
+#include "PwmLdd5.h"
 #include "TracaoEnable.h"
 #include "BitIoLdd11.h"
 #include "TracaoA2.h"
-#include "BitIoLdd12.h"
-#include "TracaoB2.h"
-#include "BitIoLdd13.h"
 /* Including shared modules, which are used for whole project */
 #include "PE_Types.h"
 #include "PE_Error.h"
@@ -72,6 +72,8 @@
 #include "IO_Map.h"
 
 /* User includes (#include below this line is not maintained by Processor Expert) */
+#include <stdlib.h>
+
 int maiorAmostra;
 int menorAmostra;
 int dadosCamera[88];
@@ -106,7 +108,7 @@ int tracao2;
 #define DIREITO_SERVO (CENTRO_SERVO+LIDERDADE_SERVO)
 
 int maxTracao = 400;
-#define MIN_TRACAO 900 //999
+#define MIN_TRACAO 750 //999
 int rangeTracao;
 
 int acenderLeds(uint8 num) {
@@ -195,13 +197,13 @@ int main(void)
 	#define DIREITA 1
 
 	TracaoEnable_PutVal(1);
-	TracaoA2_PutVal(0);
-	TracaoB2_PutVal(0);
+	TracaoA2_SetDutyUS(999);
+	TracaoB2_SetDutyUS(999);
 
 	cameraFinished = 0;
 	CameraAnalog_Enable();
 	CameraAnalog_Start();
-	maxTracao = captaValueSwitch()*100;
+	maxTracao = 400-(captaValueSwitch()*5);
 	rangeTracao = MIN_TRACAO-maxTracao;
 	
 
@@ -212,14 +214,14 @@ int main(void)
 			//Code Here!
 			if (maiorAmostra <= 50) {
 				//PRETO
-				acenderLeds(0b1001);
+				//acenderLeds(0b1001);
 			} else if (menorAmostra >= 70) {
 				//BRANCO
 				setServo(CENTRO_SERVO);
-				acenderLeds(0b1111);
+				//acenderLeds(0b1111);
 			} else {
 				//LINES
-				acenderLeds(0);
+				//acenderLeds(0);
 				for (l = 0; l < 88; l++) {
 					linha[l] = (((float) 255 / (maiorAmostra - menorAmostra))	* (dadosCamera[l] - menorAmostra)) > 115;
 				}
@@ -247,20 +249,24 @@ int main(void)
 						widthTrackMin -= 4;
 					}
 				}
+				
 
 				diffBorda = bordaR - bordaL;
 				if (!((diffBorda >= widthTrackMin)
 						&& (diffBorda <= widthTrackMax))) {
-					if ((43 - bordaL) < (bordaR - 44))
-						bordaR = bordaL + widthTrack;
-					else
-						bordaL = bordaR - widthTrack;
+					if(!(diffBorda < 30)){
+						if ((43 - bordaL) < (bordaR - 44))
+							bordaR = bordaL + widthTrack;
+						else
+							bordaL = bordaR - widthTrack;	
+					}
+
 					twoBorderDetect = FALSE;
 				}
 				else twoBorderDetect = TRUE;
 
 				output = (bordaR + bordaL) / 2;
-				err = 44 - output;
+				err = 43 - output;
 				
 				if(previousErrAbs > 22 && !twoBorderDetect){
 					err = previousErr;
@@ -272,7 +278,7 @@ int main(void)
 				
 				input = err;
 				
-				if(errAbs > 14){ //17
+				if(errAbs > 10){ //14
 					tracao1 = maxTracao + rangeTracao * ((float)-input/23);
 					tracao2 = maxTracao + rangeTracao * ((float)+input/23);
 					if (tracao1 < maxTracao)	tracao1 = maxTracao;
@@ -280,11 +286,11 @@ int main(void)
 					if (tracao1 > MIN_TRACAO)	tracao1 = MIN_TRACAO;
 					if (tracao2 > MIN_TRACAO)	tracao2 = MIN_TRACAO;
 					setTracao(tracao1,tracao2);
-					//acenderLeds(0b1111);
+					acenderLeds(0b1111);
 				}
 				else {
 					setTracao(maxTracao,maxTracao);
-					//acenderLeds(0);
+					acenderLeds(0);
 				}
 				
 				previousErr = err;
