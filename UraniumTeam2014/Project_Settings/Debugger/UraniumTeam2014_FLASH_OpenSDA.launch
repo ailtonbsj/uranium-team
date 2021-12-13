@@ -111,14 +111,14 @@
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_REGISTER_BOOKKEEPING" value="false"/>
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_RESTORE_WATCHPOINTS" value="true"/>
 <booleanAttribute key="org.eclipse.cdt.launch.ENABLE_VARIABLE_BOOKKEEPING" value="false"/>
-<stringAttribute key="org.eclipse.cdt.launch.FORMAT" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;contentList&gt;&lt;content id=&quot;twoBorderDetect--(format)&quot; val=&quot;1&quot;/&gt;&lt;content id=&quot;widthTrack--(format)&quot; val=&quot;1&quot;/&gt;&lt;content id=&quot;limiar--(format)&quot; val=&quot;1&quot;/&gt;&lt;/contentList&gt;"/>
-<stringAttribute key="org.eclipse.cdt.launch.GLOBAL_VARIABLES" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;globalVariableList&gt;&#13;&#10;&lt;globalVariable name=&quot;linhaParada&quot; path=&quot;&quot;/&gt;&#13;&#10;&lt;globalVariable name=&quot;limiar&quot; path=&quot;&quot;/&gt;&#13;&#10;&lt;globalVariable name=&quot;dadosCamera&quot; path=&quot;&quot;/&gt;&#13;&#10;&lt;globalVariable name=&quot;linha&quot; path=&quot;&quot;/&gt;&#13;&#10;&lt;/globalVariableList&gt;&#13;&#10;"/>
+<stringAttribute key="org.eclipse.cdt.launch.FORMAT" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;contentList&gt;&lt;content id=&quot;twoBorderDetect--(format)&quot; val=&quot;1&quot;/&gt;&lt;content id=&quot;widthTrack--(format)&quot; val=&quot;1&quot;/&gt;&lt;content id=&quot;switchDIP--(format)&quot; val=&quot;2&quot;/&gt;&lt;content id=&quot;limiar--(format)&quot; val=&quot;1&quot;/&gt;&lt;/contentList&gt;"/>
+<stringAttribute key="org.eclipse.cdt.launch.GLOBAL_VARIABLES" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;globalVariableList&gt;&#13;&#10;&lt;globalVariable name=&quot;switchDIP&quot; path=&quot;&quot;/&gt;&#13;&#10;&lt;globalVariable name=&quot;limiar&quot; path=&quot;&quot;/&gt;&#13;&#10;&lt;globalVariable name=&quot;dadosCamera&quot; path=&quot;&quot;/&gt;&#13;&#10;&lt;globalVariable name=&quot;linha&quot; path=&quot;&quot;/&gt;&#13;&#10;&lt;/globalVariableList&gt;&#13;&#10;"/>
 <stringAttribute key="org.eclipse.cdt.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;memoryBlockExpressionList/&gt;&#13;&#10;"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="FLASH/UraniumTeam2014.elf"/>
-<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="UraniumTeam2014Break"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="UraniumTeam2014Final"/>
 <stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value="org.eclipse.cdt.cross.arm.gnu.sourcery.windows.elf.debug.147441015"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/UraniumTeam2014Break"/>
+<listEntry value="/UraniumTeam2014Final"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="4"/>

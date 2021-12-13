@@ -77,18 +77,41 @@
 /* User includes (#include below this line is not maintained by Processor Expert) */
 #include <stdlib.h>
 
+/* Liberdado de Servo e outros */
+#define CENTRO_SERVO 18518
+#define LIDERDADE_SERVO 320
+#define ESQUERDA_SERVO (CENTRO_SERVO-LIDERDADE_SERVO)
+#define DIREITO_SERVO (CENTRO_SERVO+LIDERDADE_SERVO)
+#define ERR_MAX_CENTER 6 // valor do erro para o centro da pista
+
+/* Boost */
+#define FIRST_PULSE 200 //pulso inicial
+#define NORMAL_PULSE 70 //pulso normal
+#define PWM_PULSE 1 // tamanho do pulso em PWM (controla velocidade no pulso)
+#define SAMPLES_IN_CURVE 50 //total de detecção de amostras de curvas 50
+#define SAMPLES_IN_STRAIGHT 10 //total de deteccão de amostras de retas 10
+
+/* PWM Speed */
+#define RETA_PWM 450 //velocidade em reta sem pulso
+#define MIN_TRACAO 700 //tracao em curva da roda de dentro
+#define MAX_TRACAO 400 //tracao em reta da roda de fora
+
+/* Parada do Carro */
+#define TIME_BREAK 100000 //1000000
+
+
 int maiorAmostra;
 int menorAmostra;
 int dadosCamera[128];
 int linha[100];
-int linhaParada[43];
 uint8 limiar = 100;
-uint8 limiarParada = 100;
 uint8 cameraFinished;
 uint8 contTrack = 0;
 uint8 widthTrack = 100;
 uint8 widthTrackMin = 95;
 uint8 widthTrackMax = 100;
+bool paradaAtiva = FALSE;
+byte switchDIP = 0;
 
 int8 l;
 int8 bordaL;
@@ -108,12 +131,7 @@ int servo;
 int tracao1;
 int tracao2;
 
-#define CENTRO_SERVO 18518
-#define LIDERDADE_SERVO 320
-#define ESQUERDA_SERVO (CENTRO_SERVO-LIDERDADE_SERVO)
-#define DIREITO_SERVO (CENTRO_SERVO+LIDERDADE_SERVO)
-
-int maxTracao = 400;
+int maxTracao = MAX_TRACAO;
 int rangeTracao;
 
 //Boost
@@ -122,10 +140,15 @@ int contCurva = 0;
 bool estaEmReta  = TRUE;
 int contReta = 0;
 int timeMachine = 0;
-
-bool paradaAtiva = FALSE;
+int widthPulse = FIRST_PULSE;
 
 int8 pretos[6];
+
+void wait(long a) {
+	while (a > 0) {
+		a--;
+	}
+}
 
 int acenderLeds(uint8 num) {
 	if (num & 1)
@@ -199,9 +222,15 @@ int main(void)
 
 	/* Write your code here */
 	/* For example: for(;;) { } */
+	switchDIP = captaValueSwitch();
 	
-	if(captaValueSwitch() & 0b0001) Relogio1_Enable();
-	else Relogio1_Disable();
+	// Chave ativadora de Parada
+	if(switchDIP & 0b1000)
+		Relogio1_Enable();
+	else
+		Relogio1_Disable();
+	
+	//
 
 	TracaoEnable_PutVal(1);
 	TracaoA2_SetDutyUS(999);
@@ -210,33 +239,24 @@ int main(void)
 	cameraFinished = 0;
 	CameraAnalog_Enable();
 	CameraAnalog_Start();
-	maxTracao = 400;//-(captaValueSwitch()*10);
-	#define MIN_TRACAO 700 //999
-	#define RETA_PWM 400
+	maxTracao = MAX_TRACAO;//-(captaValueSwitch()*10);
 	rangeTracao = MIN_TRACAO-maxTracao;
 	
 	linha[0] = 0;
 	linha[99] = 0;
-	int contParadas1 = 0;
-	int contParadas2 = 0;
 	while (TRUE) {
 		if (cameraFinished) {
 			cameraFinished = 0;
-			limiar = (((float) (maiorAmostra - menorAmostra)/2)+menorAmostra);			
+			
+			limiar = ((float) (maiorAmostra - menorAmostra)/2)+menorAmostra;
+			totalParada = 0;
 			for (l = 15; l <= 112; l++) {
 				linha[l-14] = dadosCamera[l] > limiar;
+				if((contTrack >= 15) && ((l-14) > 34) && ((l-14) < 68)){
+					totalParada = totalParada + !linha[l-14];
+				}
 			}
 			
-			//PARADA NEW
-			limiarParada = limiar + 25;
-			linhaParada[0] = dadosCamera[44] > limiarParada;
-			contParadas1 = 0;
-			contParadas2 = 0;
-			for(l=45 ; l < 87 ; l++){
-				linhaParada[l-45] = dadosCamera[l] > limiarParada;
-				if(linhaParada[l-46] && !linhaParada[l-45]) contParadas1++;
-				if(!linhaParada[l-46] && linhaParada[l-45]) contParadas2++;
-			}
 
 			for (l = 49; l >= 0; l--) {
 				if (!linha[l]) {
@@ -255,14 +275,10 @@ int main(void)
 				contTrack++;
 				if(contTrack == 15){
 					widthTrack = (bordaR - bordaL);
-					widthTrackMax = widthTrack + 3;
-					widthTrackMin = widthTrack - 3;
 				}
 			}
 			
 			diffBorda = bordaR - bordaL;
-
-//					TracaoEnable_PutVal(0);
 			
 			if(bordaL == 0){
 				ladoL = bordaR - widthTrack;
@@ -281,8 +297,8 @@ int main(void)
 			err = 52 - output;
 			errAbs = abs(err);
 			
-			if(previousErrAbs > 19){
-				if(diffBorda > 48 && diffBorda < 75 && ((previousErr > 0 && err > 0) || (previousErr < 0 && err < 0))){
+			if(previousErrAbs > 19){ //Trava o carro para caso perder pista, voltar
+				if(diffBorda > 48 && diffBorda < 75 && ((previousErr > 0 && err > 0) || (previousErr < 0 && err < 0))){ //bordaL != 0 && bordaR != 99 &&
 				}
 				else {
 					err = previousErr;
@@ -300,7 +316,8 @@ int main(void)
 				setServo(servo);	
 			}
 			
-			if(errAbs > 6){
+			if(errAbs > ERR_MAX_CENTER){ //Estah em curva
+				/* proporcial de tracao em curva */
 				if(err < 0){
 					tracao1 = maxTracao + rangeTracao * ((float)errAbs/21);
 					tracao2 = maxTracao;
@@ -311,47 +328,49 @@ int main(void)
 				}
 				setTracao(tracao1,tracao2);
 				
+				/* deteccao de curva */
 				contReta = 0;
 				contCurva++;
-				if(contCurva > 50){
+				if(contCurva > SAMPLES_IN_CURVE){
 					saiuDeCurva = TRUE;
 				}
-				acenderLeds(0);
+
 			}
-			else {
-				if(!paradaAtiva){
-					contCurva = 0;
-					contReta++;
-					if(contReta > 10){
-						estaEmReta = TRUE;
+			else { // Estah em reta
+				/* deteccao de reta */
+				contCurva = 0;
+				contReta++;
+				if(contReta > SAMPLES_IN_STRAIGHT){
+					estaEmReta = TRUE;
+				}
+				/* gerador de pulsos */
+				if(saiuDeCurva && estaEmReta && !paradaAtiva){
+					setTracao(PWM_PULSE,PWM_PULSE);		
+					timeMachine++;
+					if(timeMachine > widthPulse){
+						saiuDeCurva = FALSE;
+						estaEmReta = FALSE;
+						timeMachine = 0;
+						widthPulse = NORMAL_PULSE;
 					}
-					if(saiuDeCurva && estaEmReta){
-						//acenderLeds(0b1111);
-						setTracao(1,1);		
-						timeMachine++;
-						if(timeMachine > 60){
-							saiuDeCurva = FALSE;
-							estaEmReta = FALSE;
-							timeMachine = 0;
-						}
-					}
-					else {
-						setTracao(RETA_PWM,RETA_PWM);
-						//acenderLeds(0);
-					}	
 				}
 				else {
-					setTracao(500,500);
+					setTracao(RETA_PWM,RETA_PWM);
 				}
 			}
 			
-			if((diffBorda > widthTrackMin) && (diffBorda < widthTrackMax) && paradaAtiva){
-				if(contParadas1 == 2 && contParadas2 == 2) TracaoEnable_PutVal(0);
-			}
+			if(paradaAtiva) acenderLeds(0b1111);
 			
-//			if(totalParada > 0 && previousErrAbs < 10){
-//				TracaoEnable_PutVal(0);
-//			}
+			/* Para o carrinho */
+			if(totalParada > 3 && (previousErrAbs < 10) && paradaAtiva){
+				Servo_SetDutyUS(CENTRO_SERVO);
+				TracaoA1_SetDutyUS(999);
+				TracaoB1_SetDutyUS(999);
+				TracaoA2_SetDutyUS(1);
+				TracaoB2_SetDutyUS(1);
+				wait(TIME_BREAK);
+				TracaoEnable_PutVal(0);
+			}
 			
 			previousErr = err;
 			previousErrAbs = errAbs;
