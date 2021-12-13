@@ -105,9 +105,9 @@ int tracao2;
 #define ESQUERDA_SERVO (CENTRO_SERVO-LIDERDADE_SERVO)
 #define DIREITO_SERVO (CENTRO_SERVO+LIDERDADE_SERVO)
 
-#define MAX_TRACAO 300
-#define MIN_TRACAO 800
-#define RANGE_TRACAO MAX_TRACAO-MIN_TRACAO
+int maxTracao = 400;
+#define MIN_TRACAO 900 //999
+int rangeTracao;
 
 int acenderLeds(uint8 num) {
 	if (num & 1)
@@ -169,14 +169,14 @@ int captaValueSwitch() {
 	return saida;
 }
 
-void setTracaoFull(int a, int b){
-	if(sentido == -1){
-		setTracao(a,b);
-	}
-	else {
-		setTracao(b,a);
-	}
-}
+//void setTracaoFull(int a, int b){
+//	if(sentido == -1){
+//		setTracao(a,b);
+//	}
+//	else {
+//		setTracao(b,a);
+//	}
+//}
 
 /*lint -save  -e970 Disable MISRA rule (6.3) checking. */
 int main(void)
@@ -201,6 +201,8 @@ int main(void)
 	cameraFinished = 0;
 	CameraAnalog_Enable();
 	CameraAnalog_Start();
+	maxTracao = captaValueSwitch()*100;
+	rangeTracao = MIN_TRACAO-maxTracao;
 	
 
 	while (TRUE) {
@@ -210,12 +212,14 @@ int main(void)
 			//Code Here!
 			if (maiorAmostra <= 50) {
 				//PRETO
-				//acenderLeds(0);
-			} else if (menorAmostra >= 50) {
+				acenderLeds(0b1001);
+			} else if (menorAmostra >= 70) {
 				//BRANCO
-				//acenderLeds(0b1111);
+				setServo(CENTRO_SERVO);
+				acenderLeds(0b1111);
 			} else {
 				//LINES
+				acenderLeds(0);
 				for (l = 0; l < 88; l++) {
 					linha[l] = (((float) 255 / (maiorAmostra - menorAmostra))	* (dadosCamera[l] - menorAmostra)) > 115;
 				}
@@ -256,7 +260,7 @@ int main(void)
 				else twoBorderDetect = TRUE;
 
 				output = (bordaR + bordaL) / 2;
-				err = 43 - output;
+				err = 44 - output;
 				
 				if(previousErrAbs > 22 && !twoBorderDetect){
 					err = previousErr;
@@ -268,21 +272,19 @@ int main(void)
 				
 				input = err;
 				
-#define MAX_TRACAO 400
-#define MIN_TRACAO 999
-#define RANGE_TRACAO MAX_TRACAO-MIN_TRACAO
-				
-				if(errAbs > 17){
-					tracao1 = MAX_TRACAO + (MIN_TRACAO - MAX_TRACAO) * ((float)-input/23);
-					tracao2 = MAX_TRACAO + (MIN_TRACAO - MAX_TRACAO) * ((float)+input/23);
-					if (tracao1 < MAX_TRACAO)	tracao1 = MAX_TRACAO;
-					if (tracao2 < MAX_TRACAO)	tracao2 = MAX_TRACAO;
+				if(errAbs > 14){ //17
+					tracao1 = maxTracao + rangeTracao * ((float)-input/23);
+					tracao2 = maxTracao + rangeTracao * ((float)+input/23);
+					if (tracao1 < maxTracao)	tracao1 = maxTracao;
+					if (tracao2 < maxTracao)	tracao2 = maxTracao;
 					if (tracao1 > MIN_TRACAO)	tracao1 = MIN_TRACAO;
 					if (tracao2 > MIN_TRACAO)	tracao2 = MIN_TRACAO;
 					setTracao(tracao1,tracao2);
+					//acenderLeds(0b1111);
 				}
 				else {
-					setTracao(MAX_TRACAO,MAX_TRACAO);
+					setTracao(maxTracao,maxTracao);
+					//acenderLeds(0);
 				}
 				
 				previousErr = err;
