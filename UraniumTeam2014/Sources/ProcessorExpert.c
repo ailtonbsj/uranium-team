@@ -76,20 +76,24 @@
 
 int maiorAmostra;
 int menorAmostra;
-int dadosCamera[88];
-int linha[88];
+int dadosCamera[128];
+int linha[100];
+uint8 limiar = 100;
 uint8 cameraFinished;
 int8 sentido = 1;
 
 uint8 contTrack = 0;
-uint8 widthTrack = 60;
-uint8 widthTrackMin = 57;
-uint8 widthTrackMax = 63;
+uint8 widthTrack = 100;
+uint8 widthTrackMin = 95;
+uint8 widthTrackMax = 100;
 
 int8 l;
 int8 bordaL;
 int8 bordaR;
+int8 ladoL;
+int8 ladoR;
 bool twoBorderDetect = FALSE;
+bool travaServo = FALSE;
 
 int output = 44;
 int input;
@@ -108,7 +112,6 @@ int tracao2;
 #define DIREITO_SERVO (CENTRO_SERVO+LIDERDADE_SERVO)
 
 int maxTracao = 400;
-#define MIN_TRACAO 750 //999
 int rangeTracao;
 
 int acenderLeds(uint8 num) {
@@ -203,100 +206,228 @@ int main(void)
 	cameraFinished = 0;
 	CameraAnalog_Enable();
 	CameraAnalog_Start();
-	maxTracao = 400-(captaValueSwitch()*5);
+	maxTracao = 300;//-(captaValueSwitch()*10);
+	#define MIN_TRACAO 750 //999
 	rangeTracao = MIN_TRACAO-maxTracao;
 	
-
+	linha[0] = 0;
+	linha[99] = 0;
 	while (TRUE) {
 		if (cameraFinished) {
 			cameraFinished = 0;
-
-			//Code Here!
-			if (maiorAmostra <= 50) {
-				//PRETO
-				//acenderLeds(0b1001);
-			} else if (menorAmostra >= 70) {
-				//BRANCO
-				setServo(CENTRO_SERVO);
-				//acenderLeds(0b1111);
-			} else {
-				//LINES
-				//acenderLeds(0);
-				for (l = 0; l < 88; l++) {
-					linha[l] = (((float) 255 / (maiorAmostra - menorAmostra))	* (dadosCamera[l] - menorAmostra)) > 115;
+			
+			limiar = ((float) (maiorAmostra - menorAmostra)/2)+menorAmostra;
+			for (l = 15; l <= 112; l++) {
+				linha[l-14] = dadosCamera[l] > limiar;
+			}
+			
+			for (l = 49; l >= 0; l--) {
+				if (!linha[l]) {
+					bordaL = l;
+					break;
 				}
-
-				bordaL = 0;
-				bordaR = 88;
-				for (l = 43; l >= 0; l--) {
-					if (!linha[l]) {
-						bordaL = l;
-						break;
-					}
+			}
+			for (l = 50; l < 100; l++) {
+				if (!linha[l]) {
+					bordaR = l;
+					break;
 				}
-				for (l = 44; l < 88; l++) {
-					if (!linha[l]) {
-						bordaR = l;
-						break;
-					}
+			}
+			
+			if(contTrack < 15){
+				contTrack++;
+				if(contTrack == 15){
+					widthTrack = (bordaR - bordaL);
 				}
-				
-				if(contTrack < 15){
-					contTrack++;
-					if(contTrack == 15){
-						widthTrack = bordaR - bordaL;
-						widthTrackMax += 4;
-						widthTrackMin -= 4;
-					}
-				}
-				
-
-				diffBorda = bordaR - bordaL;
-				if (!((diffBorda >= widthTrackMin)
-						&& (diffBorda <= widthTrackMax))) {
-					if(!(diffBorda < 30)){
-						if ((43 - bordaL) < (bordaR - 44))
-							bordaR = bordaL + widthTrack;
-						else
-							bordaL = bordaR - widthTrack;	
-					}
-
-					twoBorderDetect = FALSE;
-				}
-				else twoBorderDetect = TRUE;
-
-				output = (bordaR + bordaL) / 2;
-				err = 43 - output;
-				
-				if(previousErrAbs > 22 && !twoBorderDetect){
-					err = previousErr;
-				}
-				errAbs = abs(err);
-				
-				servo = ESQUERDA_SERVO + (DIREITO_SERVO-ESQUERDA_SERVO)*((float)(23+err)/46);
-				setServo(servo);
-				
-				input = err;
-				
-				if(errAbs > 10){ //14
-					tracao1 = maxTracao + rangeTracao * ((float)-input/23);
-					tracao2 = maxTracao + rangeTracao * ((float)+input/23);
-					if (tracao1 < maxTracao)	tracao1 = maxTracao;
-					if (tracao2 < maxTracao)	tracao2 = maxTracao;
-					if (tracao1 > MIN_TRACAO)	tracao1 = MIN_TRACAO;
-					if (tracao2 > MIN_TRACAO)	tracao2 = MIN_TRACAO;
-					setTracao(tracao1,tracao2);
-					acenderLeds(0b1111);
+			}
+			
+			diffBorda = bordaR - bordaL;
+			if(bordaL == 0){
+				ladoL = bordaR - widthTrack;
+				ladoR = bordaR;
+			}
+			else if(bordaR == 99){
+				ladoL = bordaL;
+				ladoR = bordaL + widthTrack;
+			}
+			else {
+				ladoR = bordaR;
+				ladoL = bordaL;
+			}
+			
+			output = (ladoR + ladoL) / 2;
+			err = 52 - output;
+			errAbs = abs(err);
+			
+			if(previousErrAbs > 21){
+				if(diffBorda > 48 && diffBorda < 75 && ((previousErr > 0 && err > 0) || (previousErr < 0 && err < 0))){ //bordaL != 0 && bordaR != 99 &&
 				}
 				else {
-					setTracao(maxTracao,maxTracao);
-					acenderLeds(0);
+					err = previousErr;
+					errAbs = previousErrAbs;
+				}
+			}
+			
+			if(diffBorda > 80){
+				setServo(CENTRO_SERVO);
+			}
+			else {
+				servo = (ESQUERDA_SERVO + (DIREITO_SERVO-ESQUERDA_SERVO)*((float)(22+err)/44));
+				setServo(servo);	
+			}
+			
+//			if(errAbs > 21){
+//				if(err > 0){
+//					setTracao(450,890);
+//				}
+//				else {
+//					setTracao(890,450);
+//				}
+//			}
+			if(errAbs > 6){
+				if(err < 0){
+					tracao1 = maxTracao + rangeTracao * ((float)errAbs/21);
+					tracao2 = maxTracao;
+				}
+				else {
+					tracao1 = maxTracao;
+					tracao2 = maxTracao + rangeTracao * ((float)errAbs/21);
 				}
 				
-				previousErr = err;
-				previousErrAbs = errAbs;
+				setTracao(tracao1,tracao2);
 			}
+			else {
+				setTracao(300,300);
+			}
+			
+			previousErr = err;
+			previousErrAbs = errAbs;
+			
+			
+			
+//			if ((bordaL != 0 && bordaR != 99) && (diffBorda > 55 && diffBorda < 68)) {
+//				twoBorderDetect = TRUE;
+//			}
+//			else twoBorderDetect = FALSE;
+//			
+//			if(previousErrAbs > 21 && !twoBorderDetect){
+//				err = previousErr;
+//				errAbs = previousErrAbs;
+//			}
+//			
+//			if(diffBorda > 80){
+//				setServo(CENTRO_SERVO);
+//			}
+//			else {
+//				servo = ESQUERDA_SERVO + (DIREITO_SERVO-ESQUERDA_SERVO)*((float)(22+err)/44);
+//				setServo(servo);
+//			}
+//			
+//			if(errAbs > 21){
+//				if(err > 0){
+//					setTracao(500,999);
+//				}
+//				else {
+//					setTracao(999,500);
+//				}
+//			}
+//			else if(errAbs > 4){
+//				tracao1 = maxTracao + rangeTracao * ((float)-input/23);
+//				tracao2 = maxTracao + rangeTracao * ((float)+input/23);
+//				if (tracao1 < maxTracao)	tracao1 = maxTracao;
+//				if (tracao2 < maxTracao)	tracao2 = maxTracao;
+//				if (tracao1 > MIN_TRACAO)	tracao1 = MIN_TRACAO;
+//				if (tracao2 > MIN_TRACAO)	tracao2 = MIN_TRACAO;
+//				setTracao(tracao1,tracao2);
+//			}
+//			else {
+//				setTracao(maxTracao,maxTracao);
+//			}
+//			
+//			if(diffBorda > 80 && !travaServo){
+//				setServo(CENTRO_SERVO);
+//			}
+//			else {
+//				servo = ESQUERDA_SERVO + (DIREITO_SERVO-ESQUERDA_SERVO)*((float)(22+err)/44);
+//				setServo(servo);
+//			}
+			
+//			servo = ESQUERDA_SERVO + (DIREITO_SERVO-ESQUERDA_SERVO)*((float)(22+err)/44);
+//			setServo(servo);
+//			
+//			setTracao(maxTracao,maxTracao);
+			
 
+//			//Code Here!
+//			if (maiorAmostra <= 50) {
+//				//PRETO
+//				//acenderLeds(0b1001);
+//			} else if (menorAmostra >= 70) {
+//				//BRANCO
+//				setServo(CENTRO_SERVO);
+//				//acenderLeds(0b1111);
+//			} else {
+//				//LINES
+//				//acenderLeds(0);
+//				for (l = 0; l < 88; l++) {
+//					linha[l] = (((float) 255 / (maiorAmostra - menorAmostra))	* (dadosCamera[l] - menorAmostra)) > 115;
+//				}
+//
+//				bordaL = 0;
+//				bordaR = 88;
+//				for (l = 43; l >= 0; l--) {
+//					if (!linha[l]) {
+//						bordaL = l;
+//						break;
+//					}
+//				}
+//				for (l = 44; l < 88; l++) {
+//					if (!linha[l]) {
+//						bordaR = l;
+//						break;
+//					}
+//				}
+//				
+//				
+//
+
+//
+//				output = (bordaR + bordaL) / 2;
+//				err = 43 - output;
+//				
+//				errAbs = abs(err);
+//				
+
+//				
+//				input = err;
+//				
+//				if(errAbs > 12){
+//					if(err > 0){
+//						setTracao(100,900);
+//					}
+//					else {
+//						setTracao(900,100);
+//					}
+//				}
+////				else if(errAbs > 4){ //14
+////					tracao1 = maxTracao + rangeTracao * ((float)-input/23);
+////					tracao2 = maxTracao + rangeTracao * ((float)+input/23);
+////					if (tracao1 < maxTracao)	tracao1 = maxTracao;
+////					if (tracao2 < maxTracao)	tracao2 = maxTracao;
+////					if (tracao1 > MIN_TRACAO)	tracao1 = MIN_TRACAO;
+////					if (tracao2 > MIN_TRACAO)	tracao2 = MIN_TRACAO;
+////					setTracao(tracao1,tracao2);
+////					acenderLeds(0b1111);
+////				}
+//				else {
+//					//setTracao(maxTracao,maxTracao);
+//					setTracao(700,700);
+//					acenderLeds(0);
+//				}
+//				
+//			}
+
+			CameraSI_PutVal(1);
 			menorAmostra = 255;
 			maiorAmostra = 0;
 			CameraAnalog_Enable();
