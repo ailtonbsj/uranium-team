@@ -84,19 +84,21 @@
 #define DIREITO_SERVO (CENTRO_SERVO+LIDERDADE_SERVO)
 #define ERR_MAX_CENTER 6 // valor do erro para o centro da pista
 
+
 /* Boost */
-#define FIRST_PULSE 1 //pulso inicial
-#define NORMAL_PULSE 1 //pulso normal
+int FIRST_PULSE = 0; //pulso inicial                                  200
+int NORMAL_PULSE = 0; //pulso normal                                   70
 #define PWM_PULSE 1 // tamanho do pulso em PWM (controla velocidade no pulso)
-#define SAMPLES_IN_CURVE 50 //total de detecção de amostras de curvas 50
+int SAMPLES_IN_CURVE = 50; //total de detecção de amostras de curvas 50
 #define SAMPLES_IN_STRAIGHT 10 //total de deteccão de amostras de retas 10
 
 /* PWM Speed */
-#define RETA_PWM 450 //velocidade em reta sem pulso
-#define MIN_TRACAO 700 //tracao em curva da roda de dentro
-#define MAX_TRACAO 400 //tracao em reta da roda de fora
+int RETA_PWM = 450; //velocidade em reta sem pulso                    450
+int MIN_TRACAO = 900; //tracao em curva da roda de dentro             700
+#define MAX_TRACAO 100 //tracao em reta da roda de fora 400
 
 /* Parada do Carro */
+int velociParada = 700;
 #define TIME_BREAK 100000 //1000000
 
 
@@ -140,7 +142,7 @@ int contCurva = 0;
 bool estaEmReta  = TRUE;
 int contReta = 0;
 int timeMachine = 0;
-int widthPulse = FIRST_PULSE;
+int widthPulse = 0;
 
 int8 pretos[6];
 
@@ -224,13 +226,40 @@ int main(void)
 	/* For example: for(;;) { } */
 	switchDIP = captaValueSwitch();
 	
-	// Chave ativadora de Parada
-	if(switchDIP & 0b1000)
-		Relogio1_Enable();
-	else
-		Relogio1_Disable();
+	/*ALGORITMO */
+	//1 - Centralizar a Mecanica (forçar com alicate) V
+	//2 - Corrigir camera com Osciloscopio (na deixar bater) V
+	//3 - Diminuir diferencial e veficar Trava! Flag (Guardar valor encontrado)
+	//MIN_TRACAO = 900 - switchDIP*25;
+	MIN_TRACAO = 825;
+	//4 - Aumentar tracao em reta (Guardar valor encontrado)
+	//RETA_PWM = 450 - switchDIP*25;
+	RETA_PWM = 300;
+	//5 - Primeiro Pulso (Guardar)
+	//FIRST_PULSE = switchDIP*25;
+	//6 - Pulso Normal
+	NORMAL_PULSE = switchDIP*10;
+	FIRST_PULSE = switchDIP*10;
+	//7 - Pulso Normal deteccao de curva
+	//SAMPLES_IN_CURVE = 50-switchDIP*5;
+	SAMPLES_IN_CURVE = 10;
+	//8 - Velocidade depois do Timer
+	//velociParada = 700-switchDIP*25;
+	//9 - Valor do Timer (Verificar LEDs)
+	//10 - Valor do Freio
+	
+	
+
+	
+	// DESATIVAR PARADA!!!
+//	if(switchDIP & 0b1000)
+//		Relogio1_Enable();
+//	else
+//		Relogio1_Disable();
 	
 	//
+	
+	widthPulse = FIRST_PULSE;
 
 	TracaoEnable_PutVal(1);
 	TracaoA2_SetDutyUS(999);
@@ -250,6 +279,19 @@ int main(void)
 			
 			limiar = ((float) (maiorAmostra - menorAmostra)/2)+menorAmostra;
 			totalParada = 0;
+			
+			
+//#define MMI 64-25
+//#define MMX 64+25
+//			int kkk = 0;
+////			//TESTE
+//			for(kkk=0;kkk<128;kkk++){
+//				if(kkk > MMI && kkk < MMX) dadosCamera[kkk] = 255;
+//				else dadosCamera[kkk] = 1;
+//			}
+//			maiorAmostra = 255;
+//			menorAmostra = 1;
+			
 			for (l = 15; l <= 112; l++) {
 				linha[l-14] = dadosCamera[l] > limiar;
 				if((contTrack >= 15) && ((l-14) > 34) && ((l-14) < 68)){
@@ -375,9 +417,10 @@ int main(void)
 			previousErr = err;
 			previousErrAbs = errAbs;
 
-			CameraSI_PutVal(1);
+			
 			menorAmostra = 255;
 			maiorAmostra = 0;
+			CameraSI_PutVal(1);
 			CameraAnalog_Enable();
 			CameraAnalog_Start();
 		}

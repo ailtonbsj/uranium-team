@@ -45,6 +45,10 @@ extern uint8 cameraFinished;
 int contaTempo = 0;
 extern bool paradaAtiva;
 
+extern velociParada;
+
+extern int RETA_PWM;
+
 /*
  ** ===================================================================
  **     Event       :  Cpu_OnNMIINT (module Events)
@@ -87,11 +91,13 @@ void CameraAnalog_OnEnd(void) {
 			cameraCont++;
 		}
 		cameraClock = !cameraClock;
-	} else if(cameraCont <= 132){
+	}
+	else if(cameraCont <= 132){
 		CameraSI_PutVal(0);
 		cameraClock = 0;
 		cameraCont++;
-	} else {
+	}
+	else {
 		cameraClock = 0;
 		cameraCont = 0;
 		CameraClock_PutVal(cameraClock);
@@ -146,8 +152,9 @@ void CameraAnalog_OnCalibrationEnd(void) {
 void Relogio1_OnInterrupt(void)
 {
   /* Write your code here ... */
-	if(contaTempo > 38){ //39
+	if(contaTempo > 16){ //Diminuir 2!!!! ex: 20 segundos = 40 - 2 = 38 
 		paradaAtiva = TRUE;
+		RETA_PWM = velociParada; // DIMINUIR VELOCIDADE DEPOIS DO TEMPO
 	}
 	contaTempo++;
 }
