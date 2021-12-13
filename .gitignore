@@ -26,7 +26,14 @@
 *.a
 *.lib
 
-# Executables
-*.exe
-*.out
-*.app
+# Code Warrior
+*/.settings
+*/Documentation
+*/FLASH
+*/Generated_Code
+
+*.cwGeneratedFileSetLog
+*.ProcessorExpert.g_c
+*.ProcessorExpert.g_x
+*.traceConfig
+*SaAnalysispointsManager.apconfig
