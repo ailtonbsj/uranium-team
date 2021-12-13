@@ -331,7 +331,7 @@ int main(void)
 					acenderLeds(0b1111);
 					setTracao(1,1);		
 					timeMachine++;
-					if(timeMachine > 60){
+					if(timeMachine > 20){
 						saiuDeCurva = FALSE;
 						estaEmReta = FALSE;
 						timeMachine = 0;
