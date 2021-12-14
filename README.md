@@ -9,7 +9,15 @@ Source code Uranium Team from Freescale Cup Brazil 2014
 - FRDM-TFC Board
 - Linescan Sensor
 
-# Some plots with MATLAB
+## Others repositories
+
+- [Freescale Cup Brazil 2015 (smartcar-with-cmos-camera)](https://github.com/ailtonbsj/smartcar-with-cmos-camera)
+
+- [Freescale Cup Brazil 2013 (cedronics-team)](https://github.com/ailtonbsj/cedronics-team)
+
+- [Processor Expert Samples](https://github.com/ailtonbsj/processor-expert-samples)
+
+## Some plots with MATLAB
 
 ![](Analise_MATLAB/matlab1.gif)
 
